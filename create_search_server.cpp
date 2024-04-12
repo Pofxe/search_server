@@ -28,7 +28,7 @@ SearchServer CreateAutoSearchServer() // функция с уже заполненными данными,пото
 {
     SearchServer search_server(SplitIntoWords("и в на для за"s));
 
-    search_server.AddDocument(1, "пропала кошка , черного цвета , окрас короткошерстный , кличка Мурка", SearchServer::DocumentStatus::ACTUAL, { 7, 8, 2, 1, 4, 6, 5, 9, 10 });
+    search_server.AddDocument(1, "пропала кошка , черного цвета , окрас короткошерстный , кличка Мурка", SearchServer::DocumentStatus::DELETED, { 7, 8, 2, 1, 4, 6, 5, 9, 10 });
     search_server.AddDocument(2, "ищем потерявшегося пса , порода : лабрадор, окрас светлый , кличка Рэмбо", SearchServer::DocumentStatus::ACTUAL, { 3, 1, 5, 7, 9, 4, 2, 8, 10, 6 });
     search_server.AddDocument(3, "обнаружена бездомная собака , кобель , среднего размера , игривый и дружелюбный", SearchServer::DocumentStatus::ACTUAL, { 4, 6, 2, 8, 1, 5, 9, 10, 7, 3 });
     search_server.AddDocument(4, "пропала кошечка , трехцветная , стерилизована , ответственный владелец", SearchServer::DocumentStatus::DELETED, { 9, 7, 3, 6, 2, 1, 10, 8, 5, });

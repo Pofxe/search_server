@@ -30,6 +30,8 @@ public:
         int rating = 0;
     };
 
+    friend ostream& operator<<(ostream& out, const Document& doc);
+
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words);
 

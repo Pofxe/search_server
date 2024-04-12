@@ -164,3 +164,9 @@ double SearchServer::ComputeWordInverseDocumentFreq(const string& word) const
 {
     return log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
 }
+
+ostream& operator<<(ostream& out, const SearchServer::Document& doc)
+{
+    out << "{ ID: " << doc.id << ", RELEVANCE: " << doc.relevance << ", RATING: " << doc.rating << ", STATUS : " << static_cast<int>(doc.status);
+    return out;
+}

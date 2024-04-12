@@ -4,42 +4,51 @@
 #include "search_server.h"
 #include "create_search_server.h"
 #include "test_server.h"
+#include "paginator.h"
 
-void PrintResultQuery(const SearchServer& search_server, const string& query)
+void PrintResultQuery(const SearchServer& server, const string& query)
 {
+    int size_pages = 2;
+    vector<SearchServer::Document> all_documents;
 
-    cout << "Search results in the list of 'Actual' :" << endl;
-    for (const auto& document : search_server.FindTopDocuments(query, SearchServer::DocumentStatus::ACTUAL))
+    auto ActualDocumentsPredicate = [](int document_id, SearchServer::DocumentStatus status, int rating) 
+        {
+        return status == SearchServer::DocumentStatus::ACTUAL;
+        };
+
+    auto DeletedDocumentsPredicate = [](int document_id, SearchServer::DocumentStatus status, int rating) 
+        {
+        return status == SearchServer::DocumentStatus::DELETED;
+        };
+
+    auto AbsentDocumentsPredicate = [](int document_id, SearchServer::DocumentStatus status, int rating) {
+        return status == SearchServer::DocumentStatus::ABSENT;
+        };
+
+    const auto actual_documents = server.FindTopDocuments(query, ActualDocumentsPredicate);
+    all_documents.insert(all_documents.end(), actual_documents.begin(), actual_documents.end());
+
+    const auto deleted_documents = server.FindTopDocuments(query, DeletedDocumentsPredicate);
+    all_documents.insert(all_documents.end(), deleted_documents.begin(), deleted_documents.end());
+
+    const auto absent_documents = server.FindTopDocuments(query, AbsentDocumentsPredicate);
+    all_documents.insert(all_documents.end(), absent_documents.begin(), absent_documents.end());
+
+    const auto pages = Paginate(all_documents, size_pages);
+
+    size_t count_page = 0;
+    for (const auto& page : pages) 
     {
-        vector<string> doc = search_server.MatchDocument(query, document.id);
-
-        string str = GetPlusWords(doc);
-
-        cout << "{ document_id = "s << document.id << ", " << "relevance = "s << document.relevance << ", "s << "rating = "s << document.rating << ", "s << "status = "s << static_cast<int>(document.status) << ", "s << "words+ = ["s << str << "] }"s << endl;
+        count_page++;
+        cout << "Страница №" << count_page << endl;
+        for (const auto& doc : page) 
+        {
+            vector<string> doc_words = server.MatchDocument(query, doc.id);
+            string str = GetPlusWords(doc_words);
+            cout << doc << ", +WORDS : [" << str << "] } " << endl;
+        }
+        cout << endl;
     }
-    cout << endl << endl;
-
-    cout << "Search results in the list of 'Deleted' :" << endl;
-    for (const auto& document : search_server.FindTopDocuments(query, SearchServer::DocumentStatus::DELETED))
-    {
-        vector<string> doc = search_server.MatchDocument(query, document.id);
-
-        string str = GetPlusWords(doc);
-
-        cout << "{ document_id = "s << document.id << ", " << "relevance = "s << document.relevance << ", "s << "rating = "s << document.rating << ", "s << "status = "s << static_cast<int>(document.status) << ", "s << "words+ = ["s << str << "] }"s << endl;
-    }
-    cout << endl;
-
-    cout << "Search results in the list of 'Absent' :" << endl;
-    for (const auto& document : search_server.FindTopDocuments(query, SearchServer::DocumentStatus::ABSENT))
-    {
-        vector<string> doc = search_server.MatchDocument(query, document.id);
-
-        string str = GetPlusWords(doc);
-
-        cout << "{ document_id = "s << document.id << ", " << "relevance = "s << document.relevance << ", "s << "rating = "s << document.rating << ", "s << "status = "s << static_cast<int>(document.status) << ", "s << "words+ = ["s << str << "] }"s << endl;
-    }
-    cout << endl;
 }
 
 int main() 
