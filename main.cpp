@@ -5,6 +5,7 @@
 #include "create_search_server.h"
 #include "test_server.h"
 #include "paginator.h"
+#include "log_duration.h"
 
 void PrintResultQuery(const SearchServer& server, const string& query)
 {
@@ -16,23 +17,29 @@ void PrintResultQuery(const SearchServer& server, const string& query)
         return status == SearchServer::DocumentStatus::ACTUAL;
         };
 
-    auto DeletedDocumentsPredicate = [](int document_id, SearchServer::DocumentStatus status, int rating) 
+    auto DeletedDocumentsPredicate = [](int document_id, SearchServer::DocumentStatus status, int rating)
         {
         return status == SearchServer::DocumentStatus::DELETED;
         };
 
-    auto AbsentDocumentsPredicate = [](int document_id, SearchServer::DocumentStatus status, int rating) {
+    auto AbsentDocumentsPredicate = [](int document_id, SearchServer::DocumentStatus status, int rating)
+        {
         return status == SearchServer::DocumentStatus::ABSENT;
         };
 
-    const auto actual_documents = server.FindTopDocuments(query, ActualDocumentsPredicate);
-    all_documents.insert(all_documents.end(), actual_documents.begin(), actual_documents.end());
+    {
+        LOG_DURATION("Find results query");
+        cout << endl;
 
-    const auto deleted_documents = server.FindTopDocuments(query, DeletedDocumentsPredicate);
-    all_documents.insert(all_documents.end(), deleted_documents.begin(), deleted_documents.end());
+        const auto actual_documents = server.FindTopDocuments(query, ActualDocumentsPredicate);
+        all_documents.insert(all_documents.end(), actual_documents.begin(), actual_documents.end());
 
-    const auto absent_documents = server.FindTopDocuments(query, AbsentDocumentsPredicate);
-    all_documents.insert(all_documents.end(), absent_documents.begin(), absent_documents.end());
+        const auto deleted_documents = server.FindTopDocuments(query, DeletedDocumentsPredicate);
+        all_documents.insert(all_documents.end(), deleted_documents.begin(), deleted_documents.end());
+
+        const auto absent_documents = server.FindTopDocuments(query, AbsentDocumentsPredicate);
+        all_documents.insert(all_documents.end(), absent_documents.begin(), absent_documents.end());
+    }
 
     const auto pages = Paginate(all_documents, size_pages);
 
